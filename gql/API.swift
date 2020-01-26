@@ -2088,22 +2088,18 @@ public final class RepoFileHistoryQuery: GraphQLQuery {
 
 public final class RepositoryInfoQuery: GraphQLQuery {
   public let operationDefinition =
-    "query RepositoryInfo($owner: String!, $name: String!, $issueQuery: String!, $prQuery: String!) {\n  repository(owner: $owner, name: $name) {\n    __typename\n    id\n    defaultBranchRef {\n      __typename\n      name\n    }\n    hasIssuesEnabled\n  }\n  repoIssueOverview: search(query: $issueQuery, type: ISSUE) {\n    __typename\n    issueCount\n  }\n  repoPullRequestOverView: search(query: $prQuery, type: ISSUE) {\n    __typename\n    issueCount\n  }\n}"
+    "query RepositoryInfo($owner: String!, $name: String!) {\n  repository(owner: $owner, name: $name) {\n    __typename\n    id\n    defaultBranchRef {\n      __typename\n      name\n    }\n    hasIssuesEnabled\n  }\n}"
 
   public var owner: String
   public var name: String
-  public var issueQuery: String
-  public var prQuery: String
 
-  public init(owner: String, name: String, issueQuery: String, prQuery: String) {
+  public init(owner: String, name: String) {
     self.owner = owner
     self.name = name
-    self.issueQuery = issueQuery
-    self.prQuery = prQuery
   }
 
   public var variables: GraphQLMap? {
-    return ["owner": owner, "name": name, "issueQuery": issueQuery, "prQuery": prQuery]
+    return ["owner": owner, "name": name]
   }
 
   public struct Data: GraphQLSelectionSet {
@@ -2111,8 +2107,6 @@ public final class RepositoryInfoQuery: GraphQLQuery {
 
     public static let selections: [GraphQLSelection] = [
       GraphQLField("repository", arguments: ["owner": GraphQLVariable("owner"), "name": GraphQLVariable("name")], type: .object(Repository.selections)),
-      GraphQLField("search", alias: "repoIssueOverview", arguments: ["query": GraphQLVariable("issueQuery"), "type": "ISSUE"], type: .nonNull(.object(RepoIssueOverview.selections))),
-      GraphQLField("search", alias: "repoPullRequestOverView", arguments: ["query": GraphQLVariable("prQuery"), "type": "ISSUE"], type: .nonNull(.object(RepoPullRequestOverView.selections))),
     ]
 
     public private(set) var resultMap: ResultMap
@@ -2121,8 +2115,8 @@ public final class RepositoryInfoQuery: GraphQLQuery {
       self.resultMap = unsafeResultMap
     }
 
-    public init(repository: Repository? = nil, repoIssueOverview: RepoIssueOverview, repoPullRequestOverView: RepoPullRequestOverView) {
-      self.init(unsafeResultMap: ["__typename": "Query", "repository": repository.flatMap { (value: Repository) -> ResultMap in value.resultMap }, "repoIssueOverview": repoIssueOverview.resultMap, "repoPullRequestOverView": repoPullRequestOverView.resultMap])
+    public init(repository: Repository? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Query", "repository": repository.flatMap { (value: Repository) -> ResultMap in value.resultMap }])
     }
 
     /// Lookup a given repository by the owner and repository name.
@@ -2132,26 +2126,6 @@ public final class RepositoryInfoQuery: GraphQLQuery {
       }
       set {
         resultMap.updateValue(newValue?.resultMap, forKey: "repository")
-      }
-    }
-
-    /// Perform a search across resources.
-    public var repoIssueOverview: RepoIssueOverview {
-      get {
-        return RepoIssueOverview(unsafeResultMap: resultMap["repoIssueOverview"]! as! ResultMap)
-      }
-      set {
-        resultMap.updateValue(newValue.resultMap, forKey: "repoIssueOverview")
-      }
-    }
-
-    /// Perform a search across resources.
-    public var repoPullRequestOverView: RepoPullRequestOverView {
-      get {
-        return RepoPullRequestOverView(unsafeResultMap: resultMap["repoPullRequestOverView"]! as! ResultMap)
-      }
-      set {
-        resultMap.updateValue(newValue.resultMap, forKey: "repoPullRequestOverView")
       }
     }
 
@@ -2248,82 +2222,6 @@ public final class RepositoryInfoQuery: GraphQLQuery {
           set {
             resultMap.updateValue(newValue, forKey: "name")
           }
-        }
-      }
-    }
-
-    public struct RepoIssueOverview: GraphQLSelectionSet {
-      public static let possibleTypes = ["SearchResultItemConnection"]
-
-      public static let selections: [GraphQLSelection] = [
-        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-        GraphQLField("issueCount", type: .nonNull(.scalar(Int.self))),
-      ]
-
-      public private(set) var resultMap: ResultMap
-
-      public init(unsafeResultMap: ResultMap) {
-        self.resultMap = unsafeResultMap
-      }
-
-      public init(issueCount: Int) {
-        self.init(unsafeResultMap: ["__typename": "SearchResultItemConnection", "issueCount": issueCount])
-      }
-
-      public var __typename: String {
-        get {
-          return resultMap["__typename"]! as! String
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "__typename")
-        }
-      }
-
-      /// The number of issues that matched the search query.
-      public var issueCount: Int {
-        get {
-          return resultMap["issueCount"]! as! Int
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "issueCount")
-        }
-      }
-    }
-
-    public struct RepoPullRequestOverView: GraphQLSelectionSet {
-      public static let possibleTypes = ["SearchResultItemConnection"]
-
-      public static let selections: [GraphQLSelection] = [
-        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-        GraphQLField("issueCount", type: .nonNull(.scalar(Int.self))),
-      ]
-
-      public private(set) var resultMap: ResultMap
-
-      public init(unsafeResultMap: ResultMap) {
-        self.resultMap = unsafeResultMap
-      }
-
-      public init(issueCount: Int) {
-        self.init(unsafeResultMap: ["__typename": "SearchResultItemConnection", "issueCount": issueCount])
-      }
-
-      public var __typename: String {
-        get {
-          return resultMap["__typename"]! as! String
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "__typename")
-        }
-      }
-
-      /// The number of issues that matched the search query.
-      public var issueCount: Int {
-        get {
-          return resultMap["issueCount"]! as! Int
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "issueCount")
         }
       }
     }
@@ -2697,6 +2595,7 @@ public final class SearchReposQuery: GraphQLQuery {
                 resultMap.updateValue(newValue, forKey: "name")
               }
             }
+          }
 
             /// The color defined for the current language.
             public var color: String? {
@@ -2726,6 +2625,7 @@ public final class SearchReposQuery: GraphQLQuery {
             public init(totalCount: Int) {
               self.init(unsafeResultMap: ["__typename": "StargazerConnection", "totalCount": totalCount])
             }
+          }
 
             public var __typename: String {
               get {
@@ -8190,7 +8090,7 @@ public final class IssueOrPullRequestQuery: GraphQLQuery {
                     self.init(unsafeResultMap: ["__typename": "GitActor", "user": user.flatMap { (value: User) -> ResultMap in value.resultMap }])
                   }
 
-                  public var __typename: String {
+                  public var updatableFields: UpdatableFields {
                     get {
                       return resultMap["__typename"]! as! String
                     }
@@ -9782,7 +9682,6 @@ public final class IssueOrPullRequestQuery: GraphQLQuery {
                   guard let newValue = newValue else { return }
                   resultMap = newValue.resultMap
                 }
-              }
 
               public struct AsPullRequestReviewThread: GraphQLSelectionSet {
                 public static let possibleTypes = ["PullRequestReviewThread"]
@@ -11083,7 +10982,6 @@ public final class IssueOrPullRequestQuery: GraphQLQuery {
                   guard let newValue = newValue else { return }
                   resultMap = newValue.resultMap
                 }
-              }
 
               public struct AsAssignedEvent: GraphQLSelectionSet {
                 public static let possibleTypes = ["AssignedEvent"]
